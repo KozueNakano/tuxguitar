@@ -28,4 +28,8 @@ public class MidiControllers {
 
 	public static final int ALL_NOTES_OFF = 0x7B;
 
+	// Picking device: CC per string (CC 102-107 = strings 1-6)
+	// Value: 0 = DOWN, 127 = UP
+	public static final int PICKING_STRING_BASE = 0x66; // 102
+
 }

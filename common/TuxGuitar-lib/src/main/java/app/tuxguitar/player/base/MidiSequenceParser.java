@@ -14,6 +14,7 @@ import app.tuxguitar.song.models.TGMeasure;
 import app.tuxguitar.song.models.TGMeasureHeader;
 import app.tuxguitar.song.models.TGNote;
 import app.tuxguitar.song.models.TGSong;
+import app.tuxguitar.song.models.TGPickStroke;
 import app.tuxguitar.song.models.TGStroke;
 import app.tuxguitar.song.models.TGTempo;
 import app.tuxguitar.song.models.TGTrack;
@@ -224,6 +225,17 @@ public class MidiSequenceParser {
 						}
 						addNote(sh,track.getNumber(), graceKey,start - graceLength,graceDuration,graceVelocity,channel,midiVoice, bendMode);
 
+					}
+					//---Picking Device CC---
+					if (!percussionChannel) {
+						int pickDirection = beat.getPickStroke().getDirection();
+						int strokeDirection = beat.getStroke().getDirection();
+						if (pickDirection != TGPickStroke.PICK_STROKE_NONE || strokeDirection != TGStroke.STROKE_NONE) {
+							int direction = (pickDirection != TGPickStroke.PICK_STROKE_NONE) ? pickDirection : strokeDirection;
+							int ccValue = (direction > 0) ? 127 : 0; // UP=127, DOWN=0
+							int ccNumber = MidiControllers.PICKING_STRING_BASE + (note.getString() - 1);
+							sh.getSequence().addControlChange(getTick(start), track.getNumber(), channel, ccNumber, ccValue);
+						}
 					}
 					//---Trill---
 					if(note.getEffect().isTrill() && !percussionChannel ){
