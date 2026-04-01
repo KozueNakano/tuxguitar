@@ -140,6 +140,76 @@ cd /home/kozue/dev/githubRepos/tuxguitar/desktop/build-scripts/tuxguitar-linux-s
 bash /home/kozue/dev/githubRepos/tuxguitar/desktop/build-scripts/tuxguitar-linux-swt/target/tuxguitar-9.99-SNAPSHOT-linux-swt/tuxguitar.sh
 ```
 
+## Raspberry Pi 64-bit（aarch64）でのセットアップと実行
+
+### 1. 依存パッケージのインストール
+
+```bash
+sudo apt update
+sudo apt install git openjdk-21-jdk maven build-essential \
+  libfluidsynth-dev libjack-jackd2-dev libasound2-dev \
+  liblilv-dev libsuil-dev qtbase5-dev
+```
+
+Javaバージョン確認・切り替え：
+```bash
+java -version  # 21であることを確認
+sudo update-alternatives --config java  # 21以外の場合はここで切り替え
+```
+
+### 2. リポジトリのクローン
+
+```bash
+git clone <リポジトリURL> ~/dev/tuxguitar
+cd ~/dev/tuxguitar
+```
+
+### 3. Eclipse SWT（aarch64版）のセットアップ
+
+```bash
+cd ~
+wget https://download.eclipse.org/eclipse/downloads/drops4/R-4.37-202509050730/swt-4.37-gtk-linux-aarch64.zip
+mkdir swt-4.37-gtk-linux-aarch64
+cd swt-4.37-gtk-linux-aarch64
+unzip ../swt-4.37-gtk-linux-aarch64.zip
+mvn install:install-file -Dfile=swt.jar -DgroupId=org.eclipse.swt -DartifactId=org.eclipse.swt.gtk.linux -Dpackaging=jar -Dversion=4.37
+```
+
+### 4. ビルド
+
+```bash
+cd ~/dev/tuxguitar/desktop/build-scripts/tuxguitar-linux-swt
+mvn -e clean verify -P native-modules
+```
+
+### 5. 起動
+
+```bash
+bash ~/dev/tuxguitar/desktop/build-scripts/tuxguitar-linux-swt/target/tuxguitar-9.99-SNAPSHOT-linux-swt/tuxguitar.sh
+```
+
+### MIDI Through出力の設定
+
+1. **snd-seq-dummyモジュールのロード**（Midi Through Port-0が見えない場合）：
+   ```bash
+   sudo modprobe snd-seq-dummy
+   # 永続化
+   echo "snd-seq-dummy" | sudo tee /etc/modules-load.d/snd-seq-dummy.conf
+   ```
+
+2. **TuxGuitarのALSAプラグインを有効化**：  
+   `Tools → Plugins` でALSAプラグインを有効にする（これがないとMIDI Throughに出力されない）
+
+3. **MIDI Port設定**：  
+   `Tools → Settings → Sound` で MIDI Port を "Midi Through Port-0" に設定
+
+4. **監視**：
+   ```bash
+   aseqdump -p 14:0
+   ```
+
+---
+
 ## Eclipse SWT（Windows版）のセットアップ
 
 SWT 4.37 をダウンロードしてMavenローカルリポジトリに登録済み。
